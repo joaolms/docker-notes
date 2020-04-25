@@ -594,6 +594,12 @@ docker stack ls
 docker stack ps STACKNAME
 docker stack services STACKNAME
 ```
+
+### Scale
+``` sh
+docker service scale STACKNAME_SERVICENAME=10
+```
+
 ### Remover a STACK
 ``` sh
 docker stack rm STACKNAME
@@ -626,5 +632,53 @@ services:
 
 volumes:
   db_data:
+```
+
+### docker-compose file [Terceiro Exemplo]
+``` yaml
+version: "3.5"
+services:
+  web:
+    image: nginx
+    deploy:
+      placement:
+        constraints:
+        - node.labels.dc == UK
+      replicas: 5
+      resources:
+        limits:
+          cpus: "0.1"
+          memory: 50M
+      restart_policy:
+        condition: on-failure
+    ports:
+    - "8080:80"
+    networks:
+    - webserver
+         
+  visualizer:
+    image: dockersamples/visualizer:stable 
+    ports:  
+    - "8888:8080"
+    volumes:
+    - "/var/run/docker.sock:/var/run/docker.sock"
+    deploy: 
+      placement:
+        constraints: [node.role == manager]
+    networks:
+    - webserver
+            
+networks:
+  webserver:
+```
+
+> Neste terceiro exemplo, usamos o *_placement: constraints_*, onde indicamos que os containers do serviço *WEB* só podem subir em nodes onde há uma label chamada *DC* e que o seu valor seja *UK*, assim como o serviço *VISUALIZER* irá verificar pela role *MANAGER*.
+
+*Visualizer:* Subirá apenas nos nodes magagers.
+*Web:* Subirá apenas em nodes onde exista uma TAG dc=UK.
+
+### Adicionando uma TAG aos nodes
+``` sh
+docker node update --label-add dc=UK elliot-01
 ```
 
