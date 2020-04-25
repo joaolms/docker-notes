@@ -545,3 +545,86 @@ docker service update --secret-rm SecretName ServiceName
 ### Dica do especialista Jeferson Noronha
 >Ele realiza um mix entre o vault do Ansible que é encriptado com o Secret do Docker, assim não expoẽ a senha ou a informação em nenhum lugar.
 
+## Compose, Stack e Services
+[Instalando o docker-compose]<https://docs.docker.com/compose/install/>
+[Overview do docker-compose]<https://docs.docker.com/compose/>
+
+_Compose é um ferramenta para definir aplicações Docker multi-container. Com o Compose, você usar um arquio YAML para configurar seus serviços. Então, com um simples comando, você cria e inicia todos os serviços dos seu arquivo de configuração._
+
+Services = conjunto de _container_
+Stack = conjunto de _services_
+
+A diferença é que quando eu crio um service por linha de comando, eu posso ter vários container para um mesmo serviço, um exemplo, criar um service com 5 réplicas de nginx.
+Já quando eu uso o docker-compose e o stack, eu posso definir em um único arquivos, vários serviços e suas réplicas, e apenas usando o _docker stack_ eu consigo subir todos os serviços de uma única vez.
+
+### docker-compose file [Primeiro Exemplo]
+``` yaml
+version: "3.5"
+services:
+  web:
+    image: nginx
+    deploy:
+      replicas: 5
+      resources:
+        limits:
+          cpus: "0.1"
+          memory: 50M
+      restart_policy:
+        condition: on-failure
+    ports:
+    - "8080:80"
+    networks:
+    - webserver
+networks:
+  webserver:
+```
+
+### Deploy de um docker-compose em um cluster swarm
+``` sh
+docker stack deploy -c docker-compose.yaml STACKNAME
+```
+
+### Análise da STACK
+```
+docker network ls
+docker network inspect STACKNAME_NETWORKNAME
+docker service ls
+docker service inspect STACKNAME_SERVICENAME
+docker stack ls
+docker stack ps STACKNAME
+docker stack services STACKNAME
+```
+### Remover a STACK
+``` sh
+docker stack rm STACKNAME
+```
+
+### docker-compose file [Segundo Exemplo]
+``` yaml
+version: '3'
+services:
+  db:
+    image: mysql:5.7
+    volumes:
+    - db_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: somewordpress
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpress
+
+  wordpress:
+    depends_on:
+    - db
+    image: wordpress:latest
+    ports:
+    - "8080:80"
+    environment: 
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+
+volumes:
+  db_data:
+```
+
