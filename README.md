@@ -1,6 +1,6 @@
 # Descomplicando o Docker - LinuxTips
 
-## Docker Básico
+## Iniciando com Docker
 ### Instalação do Docker
 <https://docs.docker.com/install>
 
@@ -143,7 +143,6 @@ docker image build -t meu-apache:1.0 -no-cache
 |USER		|Determina qual o usuário será utilizado na imagem. Por default é o root|
 |VOLUME		|Permite a criação de um ponto de montagem no container|
 |WORKDIR	|Responsável por mudar do diretório / (raiz) para o especificado nele|
-|---------------|------------------------|
 
 
 ### Argumentos (ARG)
