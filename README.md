@@ -409,12 +409,13 @@ docker swarm join-token --rotate worker
 ### Docker SWARM Node
 Opção "Availability"
 ``` sh
-docker node update --availability [drain | pause | active ] NOMEDAVM
+docker node update --availability [ drain | pause | active ] NOMEDAVM
 ```
-|OPÇÃO|DESCRIÇÃO|
-|Drain |O nó não receberá nenhum novo container e os container atuais do nó são desligados|
-|Pause |Nenhum novo container é adicionado ao container, porém os atuais containers do nó continuam rodando normalmente|
-|Active |O nó recebe os containers normalmente|
+|OPÇÃO  |DESCRIÇÃO                                                                                                          |
+|-------|-------------------------------------------------------------------------------------------------------------------|
+|Drain  |O nó não receberá nenhum novo container e os container atuais do nó são desligados                                 |
+|Pause  |Nenhum novo container é adicionado ao container,<br>porém os atuais containers do nó continuam rodando normalmente |
+|Active |O nó recebe os containers normalmente                                                                              |
 
 ``` sh
 docker node inspect NOMEDAVM
@@ -674,8 +675,8 @@ networks:
 
 > Neste terceiro exemplo, usamos o *_placement: constraints_*, onde indicamos que os containers do serviço *WEB* só podem subir em nodes onde há uma label chamada *DC* e que o seu valor seja *UK*, assim como o serviço *VISUALIZER* irá verificar pela role *MANAGER*.
 
-*Visualizer:* Subirá apenas nos nodes magagers.
-*Web:* Subirá apenas em nodes onde exista uma TAG dc=UK.
+* Visualizer:* Subirá apenas nos nodes magagers.
+* Web:* Subirá apenas em nodes onde exista uma TAG dc=UK.
 
 ### Adicionando uma TAG aos nodes
 ``` sh
