@@ -8,24 +8,24 @@
 <https://docs.docker.com/develop/develop-images/dockerfile_best-practices/>
 
 ### Entenda recursos do kernel como namespace e cgroups
-<http://man7.org/linux/man-pages/man7/namespaces.7.html>
+<http://man7.org/linux/man-pages/man7/namespaces.7.html><br>
 <https://en.wikipedia.org/wiki/Cgroups>
 
 ### Comandos básicos
 ``` sh
-docker container run -d nginx
-docker container attach <container_id>
-docker container exec -ti <container_id> <comando>
+docker container run -d IMAGENAME
+docker container attach CONTAINERID
+docker container exec -ti CONTAINERID <comando>
 
-docker container stop <container_id>
-docker container rm <container_id>
-docker container start <container_id>
-docker container restart <container_id>
-docker container pause <container_id>
-docker container unpause <container_id>
+docker container stop CONTAINERID
+docker container rm CONTAINERID
+docker container start CONTAINERID
+docker container restart CONTAINERID
+docker container pause CONTAINERID
+docker container unpause CONTAINERID
 
-docker container inspect <container_id>
-docker container logs -f <container_id>
+docker container inspect CONTAINERID
+docker container logs -f CONTAINERID
 
 docker image inspect IMAGEMID
 docker image history IMAGEMID
@@ -35,12 +35,12 @@ docker image history IMAGEMID
 
 * Informações de CPU, MEM, IO rede, IO de bloco
 ``` sh
-docker container stat <container_id>
+docker container stat CONTAINERID
 ```
 
 * TOP igual ao do Linux, mostra os processo
 ``` sh
-docker container top <container_id>
+docker container top CONTAINERID
 ```
 
 * Limitando Memória e CPU
@@ -50,8 +50,8 @@ O valor acima "0.25" está limitando o uso do container em até 25% de CPU._
 docker container run -d -m 128M IMAGENAME
 docker container run -d --cpu 0.25 -m 256M IMAGENAME
 
-docker container update --cpus 0.5 <container_id>
-docker container update --cpus 1 --memory 64M <container_id>
+docker container update --cpus 0.5 CONTAINERID
+docker container update --cpus 1 --memory 64M CONTAINERID
 ```
 
 ### Dockerfile
@@ -198,7 +198,7 @@ docker container run -it ubuntu
 Altere a image conforme sua necessidade, saia do container com *Ctrl + P + Q* para que o mesmo continue em execução e commite as alterações na imagem:
 
 ``` sh
-docker commit -m "Descrição da alteração" <container_id>
+docker commit -m "Descrição da alteração" CONTAINERID
 docker image tag <image_id> <NovoNome>:<NovaVersao>
 ```
 
@@ -347,6 +347,12 @@ pensando assim se temos 5 nós, devemos ter 3 managers, pois se houver apenas 2 
 
 Por que não usar todos os nós como managers então?
 qdo temos um cluster swarm e um manager apresenta problema, ocorre um processo chamado de eleição para decidir qual dos managers será o principal novamente, logo quanto mais managers exisitir maior o tempo para um nó ser eleito e maior o tempo de downtime do ambiente.
+
+### Antes precisa da seguinte liberação de portas TCP/UDP
+
+ - 2377 TCP       Utilizada para o gerenciamento do Cluster
+ - 7946 TCP/UDP   Comunicação entre os Nós do Cluster
+ - 4789 UDP       Porta de comunicação entre a rede Overlay
 
 ### Iniciar um cluster
 ``` sh
@@ -835,4 +841,75 @@ volumes:
 |failure_action: pause|Em caso de falha no rollback de algum container, o sistema irá pause o processo de rollback para que seja analisado o problema|
 |failure_action: continue|Em caso de falha no rollback de algum container, o sistema irá continuar executando o processo de rollback, de qualquer forma deve ser analisado o motivo da falha|
 |monitor|Tempo que o sistema irá monitorar pra saber se o rollback foi realizado com sucesso|
+
+### docker-compose file [Quinto Exemplo]
+
+``` yaml
+version: "3.7"
+services:
+  prometheus:
+    image: linuxtips/prometheus_alpine
+    volumes:
+      - ./conf/prometheus/:/etc/prometheus/
+      - prometheus_data:/var/lib/prometheus
+    networks: 
+      - backend
+    ports:
+      - 9090:9090
+  node-exporter:
+    image: linuxtips/node-exporter_alpine
+    hostname: '{{.Node.ID}}'
+    volumes:
+      - /proc:/usr/proc
+      - /sys:/usr/sys
+      -/:/rootfs
+    deploy:
+      mode: global
+    networks: 
+      - backend
+    ports:
+      - 9100:9093
+  alertmanager:
+    image: linuxtips/alertmanager_alpine
+    volumes:
+      - ./conf/alertmanager/:/etc/alertmanager/
+    networks: 
+      - backend
+    ports:
+      - 9093:9093
+  cadvisor:
+    image: google/cadvisor
+    hostname: '{{.Node.ID}}'
+    volumes: 
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - backend
+    deploy:
+      mode: global
+    ports:
+      - 8080:8080
+  grafana:
+    image: nopp/grafana_alpine
+    depends_on:
+      - prometheus
+    volumes:
+      - ./conf/grafana/grafana.db:/grafana/data/grafana.db
+    env_file:
+      - grafana.config
+    networks:
+      - backend
+      - frontend
+    ports:
+      - 3000:3000
+networks:
+  backend:
+  frontend:
+volumes:
+  prometheus_data:
+  grafana_data:
+```
 
