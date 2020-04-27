@@ -1,0 +1,66 @@
+version: "3.7"
+services:
+  prometheus:
+    image: linuxtips/prometheus_alpine
+    volumes:
+      - ./conf/prometheus/:/etc/prometheus/
+      - prometheus_data:/var/lib/prometheus
+    networks: 
+      - backend
+    ports:
+      - 9090:9090
+  node-exporter:
+    image: linuxtips/node-exporter_alpine
+    hostname: '{{.Node.ID}}'
+    volumes:
+      - /proc:/usr/proc
+      - /sys:/usr/sys
+      -/:/rootfs
+    deploy:
+      mode: global
+    networks: 
+      - backend
+    ports:
+      - 9100:9093
+  alertmanager:
+    image: linuxtips/alertmanager_alpine
+    volumes:
+      - ./conf/alertmanager/:/etc/alertmanager/
+    networks: 
+      - backend
+    ports:
+      - 9093:9093
+  cadvisor:
+    image: google/cadvisor
+    hostname: '{{.Node.ID}}'
+    volumes: 
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - backend
+    deploy:
+      mode: global
+    ports:
+      - 8080:8080
+  grafana:
+    image: nopp/grafana_alpine
+    depends_on:
+      - prometheus
+    volumes:
+      - ./conf/grafana/grafana.db:/grafana/data/grafana.db
+    env_file:
+      - grafana.config
+    networks:
+      - backend
+      - frontend
+    ports:
+      - 3000:3000
+networks:
+  backend:
+  frontend:
+volumes:
+  prometheus_data:
+  grafana_data:

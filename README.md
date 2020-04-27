@@ -411,11 +411,11 @@ Opção "Availability"
 ``` sh
 docker node update --availability [ drain | pause | active ] NOMEDAVM
 ```
-|OPÇÃO  |DESCRIÇÃO                                                                                                          |
-|-------|-------------------------------------------------------------------------------------------------------------------|
-|Drain  |O nó não receberá nenhum novo container e os container atuais do nó são desligados                                 |
-|Pause  |Nenhum novo container é adicionado ao container,<br>porém os atuais containers do nó continuam rodando normalmente |
-|Active |O nó recebe os containers normalmente                                                                              |
+|OPÇÃO    |DESCRIÇÃO                                                                                                          |
+|---------|-------------------------------------------------------------------------------------------------------------------|
+|*Drain*  |O nó não receberá nenhum novo container e os container atuais do nó são desligados                                 |
+|*Pause*  |Nenhum novo container é adicionado ao container,<br>porém os atuais containers do nó continuam rodando normalmente |
+|*Active* |O nó recebe os containers normalmente                                                                              |
 
 ``` sh
 docker node inspect NOMEDAVM
@@ -682,4 +682,150 @@ networks:
 ``` sh
 docker node update --label-add dc=UK elliot-01
 ```
+
+### docker-compose file [Quarto Exemplo]
+<https://github.com/dockersamples/example-voting-app/blob/master/docker-stack.yml>
+
+``` yaml
+version: "3.7"
+services:
+
+  redis:
+    image: redis:alpine
+    networks:
+      - frontend
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 2
+        delay: 10s
+        order: start-first
+      rollback_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: continue
+        monitor: 60s
+        order: stop-first
+      restart_policy:
+        condition: on-failure
+  db:
+    image: postgres:9.4
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - backend
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+  vote:
+    image: dockersamples/examplevotingapp_vote:before
+    ports:
+      - 5000:80
+    networks:
+      - frontend
+    depends_on:
+      - redis
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 2
+      restart_policy:
+        condition: on-failure
+  result:
+    image: dockersamples/examplevotingapp_result:before
+    ports:
+      - 5001:80
+    networks:
+      - backend
+    depends_on:
+      - db
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+
+  worker:
+    image: dockersamples/examplevotingapp_worker
+    networks:
+      - frontend
+      - backend
+    depends_on:
+      - db
+      - redis
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels: [APP=VOTING]
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
+        window: 120s
+      placement:
+        constraints: [node.role == manager]
+
+  visualizer:
+    image: dockersamples/visualizer:stable
+    ports:
+      - "8080:8080"
+    stop_grace_period: 1m30s
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+
+networks:
+  frontend:
+  backend:
+
+volumes: 
+  db-data:
+```
+
+#### O que temos de novo no docker-compose acima:
+``` yaml
+...
+  deploy:
+    mode: replicated | global
+    replicas: 2
+    update_config:
+      parallelism: 2
+      delay: 10s
+      order: start-first
+```
+
+|CHAVE|DESCRIÇÃO|
+|-----|---------|
+|deploy: replicas|Quantidade de containers que a stack irá subir|
+|deploy: mode: replicated|Será criado em toda a stack a quantidade de container específicado na opção *replicas*|
+|mode: global|Haverá um container por NODE do Swarm, caso um novo node seja adicionado ao cluster, um novo container também será criado neste node. Opção muito utilizada para containers de monitoramento do host|
+|updateconfig: parallelism:|Em caso de um update, esta opção indicará quantos containers por vez serão afetados. Neste caso temos duas replicas e elas seriam afetadas ao mesmo tempo, causando indisponibilidade, o melhor seria deixar paralleslism como 1, assim apenas um container por vez seria atualizado.|
+| update_config: delay|Considerando o parallelism, o delay indica o tempo entre executar o update no próximo grupo de container|
+|update_config: order|valores que podemos usar é *start-first* e *stop_first*. Assim você decide se quer primeiro parar o que está rolando e iniciar os novos containers ou se quer primeiro iniciar os novos container e depois para os antigos|
+
+
+``` yaml
+...
+  deploy:
+    rollback_config:
+      parallelism: 1
+      delay: 10s
+      failure_action: continue
+      monitor: 60s
+      order: stop-first
+```
+
+|CHAVE|DESCRIÇÃO|
+|-----|---------|
+|rollback_config|Possui as mesmas opções do *update_config*, porém é claro, para fazer o rollback|
+|failure_action: pause|Em caso de falha no rollback de algum container, o sistema irá pause o processo de rollback para que seja analisado o problema|
+|failure_action: continue|Em caso de falha no rollback de algum container, o sistema irá continuar executando o processo de rollback, de qualquer forma deve ser analisado o motivo da falha|
+|montior|Tempo que o sistema irá monitorar pra saber se o rollback foi realizado com sucesso|
 
