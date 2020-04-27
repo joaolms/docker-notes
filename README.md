@@ -4,6 +4,13 @@
 ### Instalação do Docker
 <https://docs.docker.com/install>
 
+### Melhores práticas para o Dockerfile
+<https://docs.docker.com/develop/develop-images/dockerfile_best-practices/>
+
+### Entenda recursos do kernel como namespace e cgroups
+<http://man7.org/linux/man-pages/man7/namespaces.7.html>
+<https://en.wikipedia.org/wiki/Cgroups>
+
 ### Comandos básicos
 ``` sh
 docker container run -d nginx
@@ -827,5 +834,5 @@ volumes:
 |rollback_config|Possui as mesmas opções do *update_config*, porém é claro, para fazer o rollback|
 |failure_action: pause|Em caso de falha no rollback de algum container, o sistema irá pause o processo de rollback para que seja analisado o problema|
 |failure_action: continue|Em caso de falha no rollback de algum container, o sistema irá continuar executando o processo de rollback, de qualquer forma deve ser analisado o motivo da falha|
-|montior|Tempo que o sistema irá monitorar pra saber se o rollback foi realizado com sucesso|
+|monitor|Tempo que o sistema irá monitorar pra saber se o rollback foi realizado com sucesso|
 
