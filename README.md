@@ -1,5 +1,18 @@
 # Descomplicando o Docker - LinuxTips
 
+## Dicas sobre a Certificação DCA
+*Study Guide:* <https://docker.cdn.prismic.io/docker/3f8ef3b3-87f1-47c7-b820-0e0a8bb308d4_DCA_study_guide_+v1.1+pdf.pdf>
+
+- Validade de 2 anos
+- A prova de 55 questões de múltipla escolha.
+- Tempo de 90 minutos
+- A prova é feita online
+- Preço $195.00
+- Só da pra fazer em pc Windows ou Mac, infelizmente em Linux a plataforma não funciona
+- A prova é em inglês
+- O treinamento da LinuxTips não cobriu o Docker EE, Docker UCP, portanto, estudar isso por fora
+- A prova do Docker não tem Retake, logo estude pra passar de primeira
+
 ## Iniciando com Docker
 ### Instalação do Docker
 <https://docs.docker.com/install>
@@ -914,32 +927,39 @@ volumes:
 ```
 
 ```
-# docker stack deploy -c docker-compose.yml giropops
-# docker service ls 
-# docker stack ls
+docker stack deploy -c docker-compose.yml giropops
+docker service ls 
+docker stack ls
 
-Prometheus:
-http://SEU_IP:9090
+  Prometheus:
+  http://SEU_IP:9090
 
-AlertManager:
-http://SEU_IP:9093
+  AlertManager:
+  http://SEU_IP:9093
 
-Grafana:
-http://SEU_IP:3000
+  Grafana:
+  http://SEU_IP:3000
 
-Node_Exporter:
-http://SEU_IP:9100
+  Node_Exporter:
+  http://SEU_IP:9100
 
-Rocket.Chat:
-http://SEU_IP:3080
+  Rocket.Chat:
+  http://SEU_IP:3080
 
-cAdivisor:
-http://SEU_IP:8080
-
-# docker stack rm giropops
+  cAdivisor:
+  http://SEU_IP:8080
 
 
-Lembrando, para conhecer mais sobre o giropops-monitoring acesse o repositório no GitHub e assista a série de vídeos em que  falo detalhadamente como montei essa solução:
-Repo: https://github.com/badtuxx/giropops-monitoring
-Vídeos: https://www.youtube.com/playlist?list=PLf-O3X2-mxDls9uH8gyCQTnyXNMe10iml
+docker stack rm giropops
 ```
+
+Lembrando, para conhecer mais sobre o giropops-monitoring acesse o repositório no GitHub e assista a série de vídeos em que o Jefferson da LinuxTips conta como montou essa solução:
+GitHub: https://github.com/badtuxx/giropops-monitoring
+Vídeos: https://www.youtube.com/playlist?list=PLf-O3X2-mxDls9uH8gyCQTnyXNMe10iml
+
+
+## Aula ao Vivo
+
+
+
+
