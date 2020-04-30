@@ -2,15 +2,20 @@
 
 ## Dicas sobre a Certificação DCA
 *Study Guide:* <https://docker.cdn.prismic.io/docker/3f8ef3b3-87f1-47c7-b820-0e0a8bb308d4_DCA_study_guide_+v1.1+pdf.pdf>
+*DevOps Academy:* https://github.com/DevOps-Academy-Org/dca-prep-guide
+https://medium.com/@cristianvitortrucco/docker-dca-8be5bb09eb44
+https://prismic-io.s3.amazonaws.com/docker%2Fa2d454ff-b2eb-4e9f-af0e-533759119eee_dca+study+guide+v1.0.1.pdf
 
-- Validade de 2 anos
-- A prova de 55 questões de múltipla escolha.
-- Tempo de 90 minutos
-- A prova é feita online
+<https://success.docker.com/certification>
+
+- Certificação tem validade por 2 anos
+- A prova tem 55 questões de múltipla escolha
+- Tempo de 90 minutos para finalizar a prova
+- A prova é online 
 - Preço $195.00
-- Só da pra fazer em pc Windows ou Mac, infelizmente em Linux a plataforma não funciona
+- *Só da pra fazer em pc _Windows_ ou _Mac_, infelizmente a plataforma não é compatível com o melhor SO do mundo: _Linux_*
 - A prova é em inglês
-- O treinamento da LinuxTips não cobriu o Docker EE, Docker UCP, portanto, estudar isso por fora
+- O treinamento da LinuxTips não cobriu UCP, DTR, Docker EE entre outros, portanto, estudar isso por fora
 - A prova do Docker não tem Retake, logo estude pra passar de primeira
 
 ## Iniciando com Docker
@@ -67,7 +72,7 @@ docker container update --cpus 0.5 CONTAINERID
 docker container update --cpus 1 --memory 64M CONTAINERID
 ```
 
-### Dockerfile
+## Dockerfile
 *Exemplo*
 ``` yaml
 FROM debian
@@ -958,8 +963,94 @@ GitHub: https://github.com/badtuxx/giropops-monitoring
 Vídeos: https://www.youtube.com/playlist?list=PLf-O3X2-mxDls9uH8gyCQTnyXNMe10iml
 
 
-## Aula ao Vivo
+## Traefik
 
+https://containo.us/traefik/
+https://docs.traefik.io/
+https://docs.containo.us/
+https://community.containo.us/
 
+- Maneira simples e rápida para fazer um Proxy Reverso
+- Traefik em alta disponiblidade precisa usar o Enterprise Edition
 
+Ambiente para teste:
+3 host na AWS:
 
+Instalar o Docker nos 3 hosts
+``` sh
+curl -FsSl https://get.docker.com | bash
+```
+
+Iniciar o cluster swarm em um dos hosts
+``` sh
+docker swarm init
+```
+
+Adicionar os dois outros hosts no swarm
+``` sh
+docker swarm joing --token TOKEN IP:PORTA
+```
+
+Criar uma rede no docker para expor publicamente os serviços do Cluster Swarm
+``` sh
+docker network create --driver=overlay traefik-public
+```
+
+Criar um arquivo "traefik_deploy.yaml"
+``` yaml
+version: '3'
+
+services:
+  reverse-proxy:
+    image: traefik:v2.0.2
+    command:
+      - "--providers.docker.endpoint=unix:///var/run/docker.sock"
+      - "--providers.docker.swarmMode=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=traefik-public"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - 80:80
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - traefik-public
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+
+networks:
+  traefik-public:
+    external: true
+```
+
+Deploy no Cluster Swarm
+``` sh
+docker stack deploy traefik -c traefik_deploy.yaml
+docker servicel logs traefik_reverse-proxy
+```
+
+Yaml da aplicação
+``` yaml
+version: '3'
+services:
+  loja:
+    image: linuxtips/nginx-prometheus-exporter:1.0.0
+    networks:
+      - traefik-public
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.loja.rule=Host('loja.biqueiranerd.com.br')"
+        - "traefik.http.routers.loja.entrypoints=web"
+        - "traefik.http.services.loja.loadbalancer.server.port=80"
+networks:
+  traefik-public:
+    external: true
+```
+
+Deploy da Aplicação (app.yaml)
+``` sh
+docker stack deploy loja -c app.yaml
+```
