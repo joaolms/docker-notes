@@ -2,9 +2,17 @@
 
 ## Dicas sobre a Certificação DCA
 *Study Guide:* <https://docker.cdn.prismic.io/docker/3f8ef3b3-87f1-47c7-b820-0e0a8bb308d4_DCA_study_guide_+v1.1+pdf.pdf>
+https://docker.cdn.prismic.io/docker/3f8ef3b3-87f1-47c7-b820-0e0a8bb308d4_DCA_study_guide_+v1.1+pdf.pdf
 *DevOps Academy:* https://github.com/DevOps-Academy-Org/dca-prep-guide
 https://medium.com/@cristianvitortrucco/docker-dca-8be5bb09eb44
 https://prismic-io.s3.amazonaws.com/docker%2Fa2d454ff-b2eb-4e9f-af0e-533759119eee_dca+study+guide+v1.0.1.pdf
+
+Simulação: https://djitz.com/certification/docker-certified-associate-dca-certification-test-resources/
+
+Repositório com links organizados para os estudo: https://github.com/Evalle/DCA
+
+UCP: https://docs.docker.com/ee/ucp/
+
 
 <https://success.docker.com/certification>
 
