@@ -20,7 +20,6 @@ UCP: https://docs.docker.com/ee/ucp/
 - A prova tem 55 questões de múltipla escolha
 - Tempo de 90 minutos para finalizar a prova
 - A prova é online 
-- Preço $195.00
 - *Só da pra fazer em pc _Windows_ ou _Mac_, infelizmente a plataforma não é compatível com o melhor SO do mundo: _Linux_*
 - A prova é em inglês
 - O treinamento da LinuxTips não cobriu UCP, DTR, Docker EE entre outros, portanto, estudar isso por fora
